@@ -7,18 +7,19 @@ public class Tower : MonoBehaviour
     [SerializeField] GameObject bulletPrefab;
     [SerializeField] float coolDownTime = 1f;
     [SerializeField] Transform bulletOrigin;
+    [SerializeField] GameObject towerCharacter;
+    [SerializeField] float characterRotationSpeed = 5f;
     [HideInInspector] public List<GameObject> enemiesInRange = new List<GameObject>();
     [HideInInspector] public GameObject currentTarget;
     private bool canShoot = true;
 
     private void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.KeypadMultiply)) PrintList();
-                
-        if (canShoot && currentTarget != null)
-        {
-            StartCoroutine(ShootTarget());
-        }        
+    {           
+        if (currentTarget != null)
+        { 
+            UpdateCharacterRotation(); 
+            if (canShoot) { StartCoroutine(ShootTarget()); }
+        }      
     }
 
     private void OnTriggerEnter(Collider other)
@@ -77,13 +78,36 @@ public class Tower : MonoBehaviour
         canShoot = true;
     }
 
-    private void PrintList()
+    private void RotateCharacter()
     {
-        Debug.Log($"*** Printing list with {enemiesInRange.Count} enemies... ***");
-        for (int i = 0; i < enemiesInRange.Count; i++)
-        {
-            Debug.Log($"{enemiesInRange[i].GetComponent<Enemy>().enemyName}");
-        }
+        // Obtén la posición del objetivo y la posición del personaje
+        Vector3 targetPosition = currentTarget.transform.position;
+        Vector3 towerPosition = towerCharacter.transform.position;
+
+        // Ignora la diferencia en el eje Y para evitar que el personaje mire hacia abajo
+        targetPosition.y = towerPosition.y;
+
+        // Haz que el personaje mire hacia el objetivo (solo en el eje Y)
+        towerCharacter.transform.LookAt(targetPosition);
     }
 
+    private void UpdateCharacterRotation()
+    {
+        if (currentTarget != null)
+        {
+            // Obtén la dirección hacia el objetivo (ignorando el eje Y)
+            Vector3 direction = currentTarget.transform.position - towerCharacter.transform.position;
+            direction.y = 0; // Ignora la diferencia en el eje Y
+
+            // Calcula la rotación deseada
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+
+            // Interpola suavemente hacia la rotación deseada
+            towerCharacter.transform.rotation = Quaternion.Slerp(
+                towerCharacter.transform.rotation,
+                targetRotation,
+                characterRotationSpeed * Time.deltaTime
+            );
+        }
+    }
 }
