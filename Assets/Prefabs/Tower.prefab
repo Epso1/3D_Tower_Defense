@@ -180,7 +180,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a8fbd3a5204a0a418ef57a6ed1fd49a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bulletPrefab: {fileID: 4839257326203559752, guid: 1a80b75e29b8122429a1bd76c7435072, type: 3}
+  bulletPrefab: {fileID: 4839257326203559752, guid: 23441665f52e8434b9e2baec3e589d88, type: 3}
   coolDownTime: 0.5
   bulletOrigin: {fileID: 3934036047415877300}
   towerCharacter: {fileID: 8729255097204692527}

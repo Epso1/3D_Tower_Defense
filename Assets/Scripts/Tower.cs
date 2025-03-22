@@ -69,26 +69,14 @@ public class Tower : MonoBehaviour
         {
             if (currentTarget.transform != null)
             {
+                towerCharacter.GetComponent<Animator>().SetTrigger("Shoot");
                 Vector3 direction = (currentTarget.transform.position - bulletOrigin.position).normalized;
-                GameObject bullet = Instantiate(bulletPrefab, bulletOrigin.position, Quaternion.identity);
-                bullet.GetComponent<Bullet>().direction = direction;
+                GameObject bullet = Instantiate(bulletPrefab, bulletOrigin.position, bulletPrefab.transform.rotation);
+                bullet.GetComponent<Bullet>().target = currentTarget.transform;
                 yield return new WaitForSeconds(coolDownTime);
             }                    
         }
         canShoot = true;
-    }
-
-    private void RotateCharacter()
-    {
-        // Obtén la posición del objetivo y la posición del personaje
-        Vector3 targetPosition = currentTarget.transform.position;
-        Vector3 towerPosition = towerCharacter.transform.position;
-
-        // Ignora la diferencia en el eje Y para evitar que el personaje mire hacia abajo
-        targetPosition.y = towerPosition.y;
-
-        // Haz que el personaje mire hacia el objetivo (solo en el eje Y)
-        towerCharacter.transform.LookAt(targetPosition);
     }
 
     private void UpdateCharacterRotation()

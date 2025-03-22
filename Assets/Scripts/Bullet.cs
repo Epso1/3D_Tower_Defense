@@ -2,14 +2,26 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    [HideInInspector] public Vector3 direction = Vector3.forward;
+    Vector3 direction = Vector3.forward;
     [SerializeField] private float speed = 16f;
     [SerializeField] private int damagePoints = 1;
     [SerializeField] GameObject hitGroundPrefab;
+    public Transform target;
 
+    private void Start()
+    {
+        if (target != null)
+        {
+            // Calcula la dirección desde la flecha hasta el target.
+            direction = (target.position - transform.position).normalized;
+            // Aplica LookRotation y ajusta con un offset.
+            transform.rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(0, -90, 0);
+        }
+    }
     void Update()
     {
-        transform.Translate(direction * speed * Time.deltaTime);
+        // Mueve la flecha en la dirección ya calculada.
+        transform.Translate(direction * speed * Time.deltaTime, Space.World);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -26,8 +38,4 @@ public class Bullet : MonoBehaviour
         }
     }
 
-    private void OnBecameInvisible()
-    {
-        Destroy(gameObject);
-    }
 }

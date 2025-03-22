@@ -75,11 +75,6 @@ public class Enemy : MonoBehaviour
         DestroyThis();
     }
 
-    private void OnBecameInvisible()
-    {
-        DestroyThis();
-    }
-
     private void DestroyThis()
     {
         Debug.Log($"Destroying {this.enemyName}...");
