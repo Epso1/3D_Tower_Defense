@@ -76,7 +76,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 5
   damagePoints: 1
-  hitGroundPrefab: {fileID: 3432958286849152088, guid: 87ee7299dd44ed747af24dbb91bcd33b, type: 3}
+  hitGroundPrefab: {fileID: 4839257326203559752, guid: d2a0368f5d907874bb23b72782333596, type: 3}
   target: {fileID: 0}
 --- !u!136 &8371080393515548537
 CapsuleCollider:

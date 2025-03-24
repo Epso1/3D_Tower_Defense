@@ -6,7 +6,7 @@ public class Bullet : MonoBehaviour
     [SerializeField] private float speed = 16f;
     [SerializeField] private int damagePoints = 1;
     [SerializeField] GameObject hitGroundPrefab;
-    public Transform target;
+    [HideInInspector] public Transform target;
 
     private void Start()
     {
@@ -33,7 +33,7 @@ public class Bullet : MonoBehaviour
         }
         if (other.CompareTag("Ground")) 
         { 
-            Instantiate(hitGroundPrefab, transform.position, hitGroundPrefab.transform.rotation);
+            Instantiate(hitGroundPrefab, transform.position, transform.rotation);
             Destroy(gameObject);
         }
     }
