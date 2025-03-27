@@ -8,94 +8,109 @@ public class Tower : MonoBehaviour
     [SerializeField] float coolDownTime = 1f;
     [SerializeField] Transform bulletOrigin;
     [SerializeField] GameObject towerCharacter;
+    [SerializeField] Animator towerCharacterAnimator;
     [SerializeField] float characterRotationSpeed = 5f;
     [HideInInspector] public List<GameObject> enemiesInRange = new List<GameObject>();
     [HideInInspector] public GameObject currentTarget;
-    private bool canShoot = true;
+
+    private Coroutine shootCoroutine = null;
+
+    private void OnEnable()
+    {
+        Enemy.OnEnemyDestroyed += RemoveEnemyFromList;
+    }
+
+    private void OnDisable()
+    {
+        Enemy.OnEnemyDestroyed -= RemoveEnemyFromList;
+    }
 
     private void Update()
-    {           
+    {
         if (currentTarget != null)
-        { 
-            UpdateCharacterRotation(); 
-            if (canShoot) { StartCoroutine(ShootTarget()); }
-        }      
+        {
+            UpdateCharacterRotation();
+
+            // Si no se está disparando, iniciar la Coroutine
+            if (shootCoroutine == null)
+            {
+                shootCoroutine = StartCoroutine(ShootTarget());
+            }
+        }
+        else
+        {
+            // Si se pierde el objetivo, detener la Coroutine de disparo
+            if (shootCoroutine != null)
+            {
+                StopCoroutine(shootCoroutine);
+                shootCoroutine = null;
+            }
+        }
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Enemy"))
         {
+            // Se asigna un nombre único al enemigo
             other.gameObject.GetComponent<Enemy>().enemyName = "Enemy_" + Time.time.ToString();
             enemiesInRange.Add(other.gameObject);
-            Debug.Log($"{other.gameObject.GetComponent<Enemy>().enemyName} added to list.");
-            if (!currentTarget)
+            if (currentTarget == null)
             {
-                currentTarget = enemiesInRange[enemiesInRange.IndexOf(other.gameObject)];
-                Debug.Log($"Current target = {currentTarget.GetComponent<Enemy>().enemyName}.");
+                currentTarget = other.gameObject;
             }
         }
     }
+
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Enemy"))
         {
-            for (int i = 0; i < enemiesInRange.Count; i++)
+            if (enemiesInRange.Contains(other.gameObject))
             {
-                if (other.gameObject.GetComponent<Enemy>().enemyName.Equals(enemiesInRange[i].GetComponent<Enemy>().enemyName)) 
-                {
-                    Debug.Log($"Removing {enemiesInRange[i].GetComponent<Enemy>().enemyName} from list.");
-                    enemiesInRange.Remove(enemiesInRange[i]);
-                    if (enemiesInRange.Count > 0)
-                    {
-                        currentTarget = enemiesInRange[0];
-                        Debug.Log($"Current target = {currentTarget.GetComponent<Enemy>().enemyName}");
-                    }
-                    else
-                    {
-                        currentTarget = null;
-                        Debug.Log($"Current target = null");
-                    }                    
-                }
-            }          
+                enemiesInRange.Remove(other.gameObject);
+                currentTarget = enemiesInRange.Count > 0 ? enemiesInRange[0] : null;
+            }
         }
     }
 
     private IEnumerator ShootTarget()
     {
-        canShoot = false;
-
         while (currentTarget != null)
         {
-            if (currentTarget.transform != null)
-            {
-                towerCharacter.GetComponent<Animator>().SetTrigger("Shoot");
-                Vector3 direction = (currentTarget.transform.position - bulletOrigin.position).normalized;
-                GameObject bullet = Instantiate(bulletPrefab, bulletOrigin.position, bulletPrefab.transform.rotation);
-                bullet.GetComponent<Bullet>().target = currentTarget.transform;
-                yield return new WaitForSeconds(coolDownTime);
-            }                    
+            towerCharacterAnimator.SetTrigger("Shoot");
+            GameObject bullet = Instantiate(bulletPrefab, bulletOrigin.position, bulletPrefab.transform.rotation);
+            bullet.GetComponent<Bullet>().target = currentTarget.transform;
+            yield return new WaitForSeconds(coolDownTime);
         }
-        canShoot = true;
+        // Al salir del while, el target es nulo; se limpia la referencia
+        shootCoroutine = null;
     }
 
     private void UpdateCharacterRotation()
     {
         if (currentTarget != null)
         {
-            // Obtén la dirección hacia el objetivo (ignorando el eje Y)
+            // Calcula la dirección ignorando el eje Y
             Vector3 direction = currentTarget.transform.position - towerCharacter.transform.position;
-            direction.y = 0; // Ignora la diferencia en el eje Y
-
-            // Calcula la rotación deseada
+            direction.y = 0;
             Quaternion targetRotation = Quaternion.LookRotation(direction);
-
-            // Interpola suavemente hacia la rotación deseada
             towerCharacter.transform.rotation = Quaternion.Slerp(
                 towerCharacter.transform.rotation,
                 targetRotation,
                 characterRotationSpeed * Time.deltaTime
             );
+        }
+    }
+
+    private void RemoveEnemyFromList(Enemy enemy)
+    {
+        GameObject enemyGO = enemy.gameObject;
+        if (enemiesInRange.Contains(enemyGO))
+        {
+            Debug.Log($"Removing {enemy.enemyName} via event from tower {name}");
+            enemiesInRange.Remove(enemyGO);
+            currentTarget = enemiesInRange.Count > 0 ? enemiesInRange[0] : null;
         }
     }
 }

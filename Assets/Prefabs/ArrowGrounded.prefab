@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc046f5e0db44934cb0a1479127ff729, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  waitTime: 1
+  waitTime: 2
   vanishTime: 0.5
   rend: {fileID: 1149458152294564328}
 --- !u!1001 &1743499679675669868

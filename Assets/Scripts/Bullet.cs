@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Bullet : MonoBehaviour
 {
@@ -28,7 +29,9 @@ public class Bullet : MonoBehaviour
     {
         if (other.CompareTag("Enemy"))
         {
-            other.GetComponent<Enemy>().ReceiveDamage(damagePoints);
+            Vector3 hitPosition = Vector3.Lerp(other.transform.position + new Vector3(0, 0.1f, 0), transform.position, 0.2f);
+            Instantiate(hitGroundPrefab, hitPosition, transform.rotation, other.transform);
+            other.GetComponent<Enemy>().ReceiveDamage(damagePoints);            
             Destroy(gameObject);
         }
         if (other.CompareTag("Ground")) 

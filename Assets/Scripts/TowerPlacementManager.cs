@@ -1,48 +1,46 @@
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.InputSystem;
 
 public class TowerPlacementManager : MonoBehaviour
 {
-    [Header("Configuración del Drag")]
-    public RectTransform dragImagePrefab; // Prefab que contiene la imagen de la torre para el drag.
-    public Canvas canvas;                 // Canvas de la UI
+    [Header("Configuración del Preview")]
+    public GameObject ghostPreviewPrefab; // Prefab 3D para la previsualización de la torre.
+    private GameObject ghostPreviewInstance; // Instancia de la previsualización.
 
     [Header("Configuración del Grid")]
-    public Grid grid;                     // Componente Grid de la escena
-    public LayerMask gridLayer;           // Capa asignada a los tiles o al plano del grid
+    public Grid grid;           // Componente Grid de la escena.
+    public LayerMask gridLayer; // Capa asignada a los tiles o al plano del grid.
 
-    private GameObject currentTowerPrefab;
+    private GameObject currentTowerPrefab; // Prefab real de la torre que se construirá.
     private bool isPlacing = false;
-    private RectTransform dragImageInstance; // Instancia de la imagen creada para el drag
 
-    // Acciones de entrada para el mouse usando el new input system.
+    // Input Actions (asumiendo que usas un InputActions generado por el new input system)
+    private InputActions inputActions;
     private InputAction clickAction;
     private InputAction moveAction;
 
     void Awake()
     {
-        // Configuramos las acciones para el clic y el movimiento del mouse.
-        clickAction = new InputAction("Click", binding: "<Mouse>/leftButton");
-        moveAction = new InputAction("Move", binding: "<Mouse>/position");
+        // Inicializamos las acciones de entrada.
+        inputActions = new InputActions();
+        clickAction = inputActions.UI.Click;
+        moveAction = inputActions.UI.Point;
 
         clickAction.performed += ctx => OnClick();
         moveAction.performed += ctx => OnMove(ctx);
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
-        clickAction.Enable();
-        moveAction.Enable();
+        inputActions.UI.Enable();
     }
 
-    void OnDisable()
+    private void OnDisable()
     {
-        clickAction.Disable();
-        moveAction.Disable();
+        inputActions.UI.Disable();
     }
 
-    // Actualiza la posición de la imagen de drag, posicionándola en el centro de la celda.
+    // Actualiza la posición del preview en el centro de la celda
     private void OnMove(InputAction.CallbackContext context)
     {
         if (!isPlacing) return;
@@ -53,50 +51,52 @@ public class TowerPlacementManager : MonoBehaviour
         {
             Vector3Int cellPos = grid.WorldToCell(hit.point);
             Vector3 cellCenter = grid.GetCellCenterWorld(cellPos);
-            if (dragImageInstance != null)
+            // Fijamos Y a 0.225f, como lo deseamos.
+            Vector3 previewPos = new Vector3(cellCenter.x, 0.225f, cellCenter.z);
+            if (ghostPreviewInstance != null)
             {
-                // Convertir la posición del centro de celda a posición en pantalla y actualizar la instancia.
-                dragImageInstance.position = Camera.main.WorldToScreenPoint(cellCenter);
+                ghostPreviewInstance.transform.position = previewPos;
             }
         }
     }
 
-    // Maneja el clic para colocar la torre en la celda seleccionada.
+    // Coloca la torre real en la posición del preview al hacer clic.
     private void OnClick()
     {
         if (!isPlacing) return;
 
-        Vector2 mousePos = Mouse.current.position.ReadValue();
-        Ray ray = Camera.main.ScreenPointToRay(mousePos);
-        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, gridLayer))
+        // Usamos la posición actual del preview para instanciar la torre real.
+        if (ghostPreviewInstance != null)
         {
-            Vector3Int cellPos = grid.WorldToCell(hit.point);
-            Vector3 cellCenter = grid.GetCellCenterWorld(cellPos);
-            // Fijamos Y = 0.225f al instanciar la torre.
-            Vector3 spawnPos = new Vector3(cellCenter.x, 0.225f, cellCenter.z);
+            Vector3 spawnPos = ghostPreviewInstance.transform.position;
             Instantiate(currentTowerPrefab, spawnPos, Quaternion.identity);
             CancelPlacement();
         }
     }
 
-    // Se llama al pulsar "comprar" en la UI.
-    // Este método crea una instancia de la imagen de drag a partir del prefab.
+    // Inicia el modo de colocación, instanciando el preview del objeto 3D.
     public void StartPlacement(GameObject towerPrefab)
     {
         currentTowerPrefab = towerPrefab;
         isPlacing = true;
-        // Instanciar una copia de la imagen para el drag en el mismo padre que el prefab original.
-        dragImageInstance = Instantiate(dragImagePrefab, dragImagePrefab.parent);
-        dragImageInstance.gameObject.SetActive(true);
+
+        // Instanciar la previsualización. Puedes usar el mismo prefab si quieres,
+        // pero es recomendable tener un prefab ghost que tenga, por ejemplo, materiales transparentes.
+        ghostPreviewInstance = Instantiate(ghostPreviewPrefab, Vector3.zero, Quaternion.identity);
+
+        // Opcional: deshabilitar colisionadores o cambiar la capa para que no interfiera con el raycast.
+        // Por ejemplo:
+        // Collider col = ghostPreviewInstance.GetComponent<Collider>();
+        // if(col != null) col.enabled = false;
     }
 
-    // Cancela el modo de colocación y destruye la imagen creada.
+    // Cancela la colocación y elimina la previsualización.
     public void CancelPlacement()
     {
         isPlacing = false;
-        if (dragImageInstance != null)
+        if (ghostPreviewInstance != null)
         {
-            Destroy(dragImageInstance.gameObject);
+            Destroy(ghostPreviewInstance);
         }
     }
 }
