@@ -81,10 +81,10 @@ public class Enemy : MonoBehaviour
 
     private void DestroyThis()
     {
-        Debug.Log($"Destroying {this.enemyName}...");
+        //Debug.Log($"Destroying {this.enemyName}...");
         // Notifica a todas las torres suscriptoras
         OnEnemyDestroyed?.Invoke(this);
-        Debug.Log("Enemy removed from all lists.");
+        //Debug.Log("Enemy removed from all lists.");
         Destroy(gameObject);
     }
 }

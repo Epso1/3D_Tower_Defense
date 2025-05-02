@@ -108,7 +108,7 @@ public class Tower : MonoBehaviour
         GameObject enemyGO = enemy.gameObject;
         if (enemiesInRange.Contains(enemyGO))
         {
-            Debug.Log($"Removing {enemy.enemyName} via event from tower {name}");
+            //Debug.Log($"Removing {enemy.enemyName} via event from tower {name}");
             enemiesInRange.Remove(enemyGO);
             currentTarget = enemiesInRange.Count > 0 ? enemiesInRange[0] : null;
         }
