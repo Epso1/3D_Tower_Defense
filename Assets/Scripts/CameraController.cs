@@ -13,12 +13,6 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float panSpeed = 20f;
     [SerializeField] private float panBorderThickness = 10f;
 
-    [Header("Límites del Nivel")]
-    [SerializeField] private float levelMinX = -20f;
-    [SerializeField] private float levelMaxX = 20f;
-    [SerializeField] private float levelMinZ = -20f;
-    [SerializeField] private float levelMaxZ = 20f;
-
     private Camera cam;
     private float targetZoom;  // Zoom objetivo
 
@@ -52,10 +46,18 @@ public class CameraController : MonoBehaviour
         inputActions.UI.Disable();
     }
 
+
     void Update()
     {
+
+        /// ZOOM CÁMARA
+        // Leer scroll input y normalizar
+        Vector2 scrollInputNormalized = scrollAction.ReadValue<Vector2>().normalized;
         // Leer scroll input y normalizar dividiendo por 120 (ticks)
-        float scrollInput = scrollAction.ReadValue<Vector2>().y / 120f;
+        //float scrollInput = scrollAction.ReadValue<Vector2>().y / 120f;
+        
+        float scrollInput = scrollInputNormalized.y * 10f;
+
         if (Mathf.Abs(scrollInput) > 0)
         {
             // Actualizar targetZoom basándonos en scrollInput
@@ -66,16 +68,24 @@ public class CameraController : MonoBehaviour
         // Interpolar suavemente hacia el targetZoom
         cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, targetZoom, zoomSmoothFactor * Time.deltaTime);
 
+
+        /// MOVIMIENTO CÁMARA        
         // Movimiento isométrico basado en la posición del puntero
         Vector2 pointerPosition = pointAction.ReadValue<Vector2>();
 
         Vector3 camRight = transform.right;
+        Debug.Log("camRight = " + camRight);
         camRight.y = 0;
+        Debug.Log("camRight.y = " + camRight.y);
         camRight.Normalize();
+        Debug.Log("camRight Normalized = " + camRight);
 
         Vector3 camForward = transform.forward;
+        Debug.Log("camForward = " + camForward);
         camForward.y = 0;
+        Debug.Log("camForward.y = " + camForward.y);
         camForward.Normalize();
+        Debug.Log("camForward Normalized = " + camForward);
 
         Vector3 moveDir = Vector3.zero;
 
@@ -90,14 +100,7 @@ public class CameraController : MonoBehaviour
 
         Vector3 pos = transform.position;
         pos += moveDir * panSpeed * Time.deltaTime;
-
-        // Calcular límites según el tamaño ortográfico actual
-        float halfHeight = cam.orthographicSize;
-        float halfWidth = cam.orthographicSize * cam.aspect;
-
-        pos.x = Mathf.Clamp(pos.x, levelMinX + halfWidth, levelMaxX - halfWidth);
-        pos.z = Mathf.Clamp(pos.z, levelMinZ + halfHeight, levelMaxZ - halfHeight);
-
+        
         transform.position = pos;
     }
 }

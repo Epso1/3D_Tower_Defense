@@ -17786,10 +17786,6 @@ MonoBehaviour:
   zoomSmoothFactor: 5
   panSpeed: 5
   panBorderThickness: 10
-  levelMinX: 0
-  levelMaxX: 14.22
-  levelMinZ: -11.5
-  levelMaxZ: -3.5
 --- !u!1 &964651277 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 645666506664218333, guid: 69f1cef286a5372498ca245a18f269c2, type: 3}
